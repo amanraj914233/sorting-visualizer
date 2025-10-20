@@ -20,6 +20,7 @@ A comprehensive Python application that visualizes various sorting algorithms wi
   │   ├── main.py              # Main application and GUI
   │   ├── sorting_algorithms.py # All sorting algorithm implementations
   │   └── visualizer.py        # Visualization utilities
+  │   └── visualizer.py        # Audio Manager
   ├── tests/
   │   └── test_sorting.py      # Unit tests
   ├── requirements.txt         # Python dependencies
