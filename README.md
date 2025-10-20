@@ -15,7 +15,7 @@ A comprehensive Python application that visualizes various sorting algorithms wi
 
 
 # Project Structure
--sorting-visualizer/
+```bash-sorting-visualizer/
   ├── src/
   │   ├── main.py              # Main application and GUI
   │   ├── sorting_algorithms.py # All sorting algorithm implementations
@@ -25,7 +25,7 @@ A comprehensive Python application that visualizes various sorting algorithms wi
   ├── requirements.txt         # Python dependencies
   ├── README.md               # Project documentation
   └── run.py                  # Application entry point
-
+```
 # Prerequisites
 - Python 3.8 or higher
 - pip (Python package manager)
@@ -49,6 +49,7 @@ Generate Data: Create new random data to sort
 Start Sorting: Click "Start Sorting" to visualize the algorithm
 Compare Algorithms: Use "Compare All" to see performance metrics
 
+```bash
 # Algorithms Implemented
 -Algorithm	       Time Complexity	   Space Complexity    	Features
 -Bubble Sort	       O(n²)            	O(1)              	Simple, educational
@@ -57,4 +58,4 @@ Compare Algorithms: Use "Compare All" to see performance metrics
 -Merge Sort	         O(n log n)	        O(n)	              Divide and conquer
 -Quick Sort	         O(n log n)	        O(log n)	          Efficient average case
 -Heap Sort         	O(n log n)        	O(1)	              Uses heap data structure
-
+```
