@@ -2,13 +2,19 @@ import random
 from typing import List, Tuple, Generator
 
 class SortingAlgorithms:
-    def __init__(self):
+    def __init__(self, audio_manager=None):
         self.comparisons = 0
         self.swaps = 0
+        self.audio = audio_manager
         
     def reset_counters(self):
         self.comparisons = 0
         self.swaps = 0
+        
+    def play_sound(self, sound_type):
+        """Helper method to play sounds"""
+        if self.audio:
+            self.audio.play_sound(sound_type)
         
     def bubble_sort(self, data: List[int]) -> Generator[Tuple[List[int], List[int], int, int], None, None]:
         """Bubble Sort algorithm with step-by-step yield"""
@@ -19,17 +25,20 @@ class SortingAlgorithms:
             swapped = False
             for j in range(0, n - i - 1):
                 self.comparisons += 1
+                self.play_sound('compare')
                 yield data.copy(), [j, j+1], self.comparisons, self.swaps
                 
                 if data[j] > data[j + 1]:
                     data[j], data[j + 1] = data[j + 1], data[j]
                     self.swaps += 1
+                    self.play_sound('swap')
                     swapped = True
                     yield data.copy(), [j, j+1], self.comparisons, self.swaps
             
             if not swapped:
                 break
                 
+        self.play_sound('complete')
         yield data.copy(), [], self.comparisons, self.swaps
         
     def selection_sort(self, data: List[int]) -> Generator[Tuple[List[int], List[int], int, int], None, None]:
@@ -39,21 +48,26 @@ class SortingAlgorithms:
         
         for i in range(n):
             min_idx = i
+            self.play_sound('select')
             yield data.copy(), [i, min_idx], self.comparisons, self.swaps
             
             for j in range(i + 1, n):
                 self.comparisons += 1
+                self.play_sound('compare')
                 yield data.copy(), [i, j, min_idx], self.comparisons, self.swaps
                 
                 if data[j] < data[min_idx]:
                     min_idx = j
+                    self.play_sound('select')
                     yield data.copy(), [i, j, min_idx], self.comparisons, self.swaps
             
             if min_idx != i:
                 data[i], data[min_idx] = data[min_idx], data[i]
                 self.swaps += 1
+                self.play_sound('swap')
                 yield data.copy(), [i, min_idx], self.comparisons, self.swaps
                 
+        self.play_sound('complete')
         yield data.copy(), [], self.comparisons, self.swaps
         
     def insertion_sort(self, data: List[int]) -> Generator[Tuple[List[int], List[int], int, int], None, None]:
@@ -63,19 +77,24 @@ class SortingAlgorithms:
         for i in range(1, len(data)):
             key = data[i]
             j = i - 1
+            self.play_sound('select')
             yield data.copy(), [i, j], self.comparisons, self.swaps
             
             while j >= 0 and data[j] > key:
                 self.comparisons += 1
+                self.play_sound('compare')
                 data[j + 1] = data[j]
                 self.swaps += 1
+                self.play_sound('swap')
                 j -= 1
                 yield data.copy(), [i, j+1], self.comparisons, self.swaps
                 
             data[j + 1] = key
             self.swaps += 1
+            self.play_sound('swap')
             yield data.copy(), [j+1], self.comparisons, self.swaps
             
+        self.play_sound('complete')
         yield data.copy(), [], self.comparisons, self.swaps
         
     def merge_sort(self, data: List[int]) -> Generator[Tuple[List[int], List[int], int, int], None, None]:
@@ -90,6 +109,7 @@ class SortingAlgorithms:
                 yield from merge(arr, left, mid, right)
                 
         def merge(arr, left, mid, right):
+            self.play_sound('merge')
             left_arr = arr[left:mid+1]
             right_arr = arr[mid+1:right+1]
             
@@ -98,6 +118,7 @@ class SortingAlgorithms:
             
             while i < len(left_arr) and j < len(right_arr):
                 self.comparisons += 1
+                self.play_sound('compare')
                 yield arr.copy(), [k], self.comparisons, self.swaps
                 
                 if left_arr[i] <= right_arr[j]:
@@ -107,6 +128,7 @@ class SortingAlgorithms:
                     arr[k] = right_arr[j]
                     j += 1
                     self.swaps += 1
+                    self.play_sound('swap')
                 k += 1
                 
             while i < len(left_arr):
@@ -114,6 +136,7 @@ class SortingAlgorithms:
                 i += 1
                 k += 1
                 self.swaps += 1
+                self.play_sound('swap')
                 yield arr.copy(), [k-1], self.comparisons, self.swaps
                 
             while j < len(right_arr):
@@ -121,11 +144,13 @@ class SortingAlgorithms:
                 j += 1
                 k += 1
                 self.swaps += 1
+                self.play_sound('swap')
                 yield arr.copy(), [k-1], self.comparisons, self.swaps
                 
             yield arr.copy(), list(range(left, right+1)), self.comparisons, self.swaps
                 
         yield from merge_sort_helper(data, 0, len(data) - 1)
+        self.play_sound('complete')
         yield data.copy(), [], self.comparisons, self.swaps
         
     def quick_sort(self, data: List[int]) -> Generator[Tuple[List[int], List[int], int, int], None, None]:
@@ -140,10 +165,14 @@ class SortingAlgorithms:
                 
         def partition(arr, low, high):
             pivot = arr[high]
+            self.play_sound('pivot')
+            yield arr.copy(), [high], self.comparisons, self.swaps
+            
             i = low - 1
             
             for j in range(low, high):
                 self.comparisons += 1
+                self.play_sound('compare')
                 yield arr.copy(), [j, high, i], self.comparisons, self.swaps
                 
                 if arr[j] <= pivot:
@@ -151,16 +180,19 @@ class SortingAlgorithms:
                     arr[i], arr[j] = arr[j], arr[i]
                     if i != j:
                         self.swaps += 1
+                        self.play_sound('swap')
                     yield arr.copy(), [i, j, high], self.comparisons, self.swaps
             
             arr[i + 1], arr[high] = arr[high], arr[i + 1]
             if i + 1 != high:
                 self.swaps += 1
+                self.play_sound('swap')
             yield arr.copy(), [i+1, high], self.comparisons, self.swaps
             
             return i + 1
             
         yield from quick_sort_helper(data, 0, len(data) - 1)
+        self.play_sound('complete')
         yield data.copy(), [], self.comparisons, self.swaps
         
     def heap_sort(self, data: List[int]) -> Generator[Tuple[List[int], List[int], int, int], None, None]:
@@ -176,9 +208,11 @@ class SortingAlgorithms:
         for i in range(n - 1, 0, -1):
             data[i], data[0] = data[0], data[i]
             self.swaps += 1
+            self.play_sound('swap')
             yield data.copy(), [i, 0], self.comparisons, self.swaps
             yield from self.heapify(data, i, 0)
             
+        self.play_sound('complete')
         yield data.copy(), [], self.comparisons, self.swaps
         
     def heapify(self, arr, n, i):
@@ -189,12 +223,14 @@ class SortingAlgorithms:
         
         if left < n:
             self.comparisons += 1
+            self.play_sound('compare')
             yield arr.copy(), [i, left, largest], self.comparisons, self.swaps
             if arr[left] > arr[largest]:
                 largest = left
                 
         if right < n:
             self.comparisons += 1
+            self.play_sound('compare')
             yield arr.copy(), [i, right, largest], self.comparisons, self.swaps
             if arr[right] > arr[largest]:
                 largest = right
@@ -202,5 +238,6 @@ class SortingAlgorithms:
         if largest != i:
             arr[i], arr[largest] = arr[largest], arr[i]
             self.swaps += 1
+            self.play_sound('swap')
             yield arr.copy(), [i, largest], self.comparisons, self.swaps
             yield from self.heapify(arr, n, largest)

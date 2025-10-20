@@ -7,6 +7,7 @@ import time
 import threading
 from src.sorting_algorithms import SortingAlgorithms
 from src.visualizer import SortingVisualizer
+from src.audio_manager import AudioManager
 
 class SortingVisualizerApp:
     def __init__(self, root):
@@ -15,12 +16,15 @@ class SortingVisualizerApp:
         self.root.geometry("1200x800")
         self.root.configure(bg='#2c3e50')
         
-        self.sorting = SortingAlgorithms()
+        # Initialize audio manager
+        self.audio_manager = AudioManager()
+        self.sorting = SortingAlgorithms(self.audio_manager)
         self.visualizer = SortingVisualizer()
         
         self.data_size = tk.IntVar(value=50)
         self.speed = tk.DoubleVar(value=0.05)
         self.current_algorithm = tk.StringVar(value="Bubble Sort")
+        self.sound_enabled = tk.BooleanVar(value=True)
         self.is_sorting = False
         self.sorting_thread = None
         self.data = []
@@ -59,9 +63,15 @@ class SortingVisualizerApp:
         speed_scale.grid(row=0, column=6, padx=(0, 10))
         ttk.Label(control_frame, textvariable=self.speed).grid(row=0, column=7, padx=(0, 20))
         
+        # Sound control
+        sound_check = ttk.Checkbutton(control_frame, text="🔊 Sound", 
+                                     variable=self.sound_enabled,
+                                     command=self.toggle_sound)
+        sound_check.grid(row=0, column=8, padx=(0, 20))
+        
         # Buttons
         button_frame = ttk.Frame(control_frame)
-        button_frame.grid(row=0, column=8, sticky=tk.E)
+        button_frame.grid(row=0, column=9, sticky=tk.E)
         
         ttk.Button(button_frame, text="Generate Data", 
                   command=self.generate_data).pack(side=tk.LEFT, padx=(0, 5))
@@ -87,6 +97,13 @@ class SortingVisualizerApp:
         self.fig, self.ax = plt.subplots(figsize=(12, 6))
         self.canvas = FigureCanvasTkAgg(self.fig, master=viz_frame)
         self.canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+        
+    def toggle_sound(self):
+        """Toggle sound effects on/off"""
+        enabled = self.sound_enabled.get()
+        self.audio_manager.toggle_sound(enabled)
+        status = "enabled" if enabled else "disabled"
+        self.update_stats(f"Sound {status}")
         
     def generate_data(self):
         if self.is_sorting:
@@ -131,11 +148,11 @@ class SortingVisualizerApp:
         self.ax.set_ylabel('Value', color='white', fontsize=12)
         self.ax.set_ylim(0, max(self.data) * 1.1)
         
-        #
+        # Add value labels with better visibility
         if len(self.data) <= 50:
             for i, bar in enumerate(bars):
                 height = bar.get_height()
-                # Use black text
+                # Use black text for better contrast on light blue bars
                 text_color = 'black' if colors[i] == '#3498db' else 'white'
                 self.ax.text(bar.get_x() + bar.get_width()/2., height + 0.5,
                            f'{int(height)}', ha='center', va='bottom', 
@@ -149,7 +166,8 @@ class SortingVisualizerApp:
         self.stats_text.insert(tk.END, f"{message}\n")
         self.stats_text.insert(tk.END, f"Data Size: {len(self.data)}\n")
         self.stats_text.insert(tk.END, f"Current Algorithm: {self.current_algorithm.get()}\n")
-        self.stats_text.insert(tk.END, f"Speed: {self.speed.get():.2f} seconds")
+        self.stats_text.insert(tk.END, f"Speed: {self.speed.get():.2f} seconds\n")
+        self.stats_text.insert(tk.END, f"Sound: {'ON' if self.sound_enabled.get() else 'OFF'}")
         
     def start_sorting(self):
         if self.is_sorting:
@@ -186,7 +204,7 @@ class SortingVisualizerApp:
             
             # Animate the sorting steps
             for step_data, highlights, comparisons, swaps in steps_generator:
-                if not self.is_sorting:  
+                if not self.is_sorting:  # Allow cancellation
                     break
                     
                 self.data = step_data
@@ -199,7 +217,7 @@ class SortingVisualizerApp:
             self.root.after(0, lambda: self.update_stats(final_message))
             
         except Exception as e:
-            #
+            # FIXED: Properly capture the exception in lambda
             error_msg = str(e)
             self.root.after(0, lambda msg=error_msg: messagebox.showerror("Error", f"An error occurred: {msg}"))
         finally:
@@ -211,6 +229,11 @@ class SortingVisualizerApp:
         
     def compare_algorithms(self):
         CompareWindow(self.root, self.data_size.get())
+        
+    def __del__(self):
+        """Clean up audio resources when application closes"""
+        if hasattr(self, 'audio_manager'):
+            self.audio_manager.cleanup()
 
 class CompareWindow:
     def __init__(self, parent, data_size):
@@ -220,7 +243,7 @@ class CompareWindow:
         self.window.configure(bg='#2c3e50')
         
         self.data_size = data_size
-        self.sorting = SortingAlgorithms()
+        self.sorting = SortingAlgorithms()  # No audio for comparison
         
         self.setup_ui()
         self.run_comparison()
@@ -327,6 +350,13 @@ class CompareWindow:
 def main():
     root = tk.Tk()
     app = SortingVisualizerApp(root)
+    
+    # Handle application close properly
+    def on_closing():
+        app.audio_manager.cleanup()
+        root.destroy()
+    
+    root.protocol("WM_DELETE_WINDOW", on_closing)
     root.mainloop()
 
 if __name__ == "__main__":
