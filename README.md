@@ -21,10 +21,8 @@ A comprehensive Python application that visualizes various sorting algorithms wi
   │   ├── sorting_algorithms.py # All sorting algorithm implementations
   │   └── visualizer.py        # Visualization utilities
   │   └── audio_manager.py        # Audio Manager
-  ├── tests/
-  │   └── test_sorting.py      # Unit tests
+  │  
   ├── requirements.txt         # Python dependencies
-  ├── README.md               # Project documentation
   └── run.py                  # Application entry point
 ```
 # Prerequisites
